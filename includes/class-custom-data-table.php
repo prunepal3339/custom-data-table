@@ -21,13 +21,13 @@ if( !class_exists('Custom_Data_Table') ) {
             add_shortcode( $this->table_id, array($this, 'render_shortcode') );
         }
         public function enqueue_scripts() {
-            wp_enqueue_script('jquery');
+            
+            // wp_enqueue_script('jquery');
 
             //Add jQuery datatables
-            wp_enqueue_script('jquery-datatable-css', 'https://cdn.datatables.net/v/dt/dt-2.2.2/datatables.min.css');
-            wp_enqueue_script('jquery-datatable-js', 'https://cdn.datatables.net/v/dt/dt-2.2.2/datatables.min.js', array('jquery') );
+            wp_enqueue_script('jquery-datatable-css', 'https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css', array(), '1.0' );
+            wp_enqueue_script('jquery-datatable-js', 'https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js', array('jquery'), '1.0' );
 
-            //Initialize DataTables
             $options = json_encode(apply_filters('custom_data_table_options', $this->options));
 
             wp_add_inline_script('jquery-datatable-js', "
@@ -38,7 +38,7 @@ if( !class_exists('Custom_Data_Table') ) {
         }
         public function render() {
             ?>
-            <table id="<?php echo esc_attr($this->table_id); ?>" class="display cell-border" style="width:100%">
+            <table id="<?php echo esc_attr($this->table_id); ?>" class="display dataTable <?php echo implode(' ', apply_filters('custom_data_table_classes', [])); ?>" style="width:100%;">
                 <thead>
                     <tr><?php $this->render_table_columns(); ?></tr>
                 </thead>
@@ -70,7 +70,7 @@ if( !class_exists('Custom_Data_Table') ) {
         public function render_shortcode() {
             ob_start();
             ?>
-            <div class='frontend-data-table' id='<?php echo "frontend-data-table__{$this->table_id}" ?>' >
+            <div class='custom-data-table' id='<?php echo "custom-data-table__{$this->table_id}" ?>' >
                 <?php $this->render(); ?>
             </div>
             <?php

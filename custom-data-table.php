@@ -15,34 +15,50 @@ define('CUSTOM_DATA_TABLE_URL', plugin_dir_url(__FILE__));
 
 require_once CUSTOM_DATA_TABLE_DIR . 'includes/class-custom-user-list-table.php';
 
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/class-cdt-user-registration-form.php';
+
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/fields/class-cdt-email-form-field.php';
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/fields/class-cdt-password-form-field.php';
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/fields/class-cdt-text-input-form-field.php';
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/fields/class-cdt-select-form-field.php';
+
+
+require_once CUSTOM_DATA_TABLE_DIR . 'includes/cdt-functions-core.php';
+
+function cdt_user_registration_form_shortcode_cb() {
+    $urForm = CDT_User_Registration_Form::init();
+    
+    $role_options = array();
+
+    $roles = new WP_Roles();
+    $roles_names_array = $roles->get_names();
+    foreach( $roles_names_array as $role ) {
+        $role_options[] = array(
+            'label' => $role,
+            'value' => $role,
+        );
+    }
+
+    $urForm
+        ->add_form_field(new CDT_Text_Input_Form_Field('username', 'Username'))
+        ->add_form_field(new CDT_Text_Input_Form_Field('displayname', 'Display Name'))
+        ->add_form_field(new CDT_Select_Form_Field('roleselect', 'Select Role', $role_options))
+        ->add_form_field(new CDT_Email_Form_Field('email', 'Email'))
+        ->add_form_field(new CDT_Password_Form_Field('password', 'Password'))
+        ->add_form_field(new CDT_Password_Form_Field('confirm-password', 'Confirm Password'));
+    return $urForm->render_form();
+}
 add_action('init', function() {
     new Custom_User_List_Table();
+    add_shortcode('cdt_form_user_registration', 'cdt_user_registration_form_shortcode_cb');
+    // error_log(print_r(wp_doing_ajax()));
 });
 
-function enqueue_table_styles() {
-    wp_enqueue_style('jquery-table-style', CUSTOM_DATA_TABLE_DIR . 'assets/table-style.css', array('jquery-datatable-css'));
-}
-add_action('wp_enqueue_scripts', callback: 'enqueue_table_styles' );
+add_filter('custom_data_table_classes', function($classes) {
+    $classes[] = 'cell-border';
+    return $classes;
+});
 
-function debug_all_shortcodes() {
-    global $shortcode_tags;
-    if (empty($shortcode_tags)) {
-        echo 'No shortcodes are registered.';
-    }
-    ob_start();
-    echo "<table>";
-    echo "<thead><tr><th>Shortcode</th><th>Rendered Output</th></tr></thead><tbody>";
-    foreach ($shortcode_tags as $shortcode => $callback) {
-        $rendered_output = do_shortcode("[$shortcode]");
-        echo "<tr>";
-        echo "<td style='border: 1px solid #000; padding: 8px;'><strong>[$shortcode]</strong></td>";
-        echo "<td style='border: 1px solid #000; padding: 8px;'>" . esc_html($rendered_output) . "</td>";
-        echo "</tr>";
-    }
-
-    echo "</tbody></table>";
-
-    $output = ob_get_clean();
-
-    wp_die($output);
-}
+add_filter('custom_data_table_options', function($options) {
+    $options['retrieve'] = true; 
+});
