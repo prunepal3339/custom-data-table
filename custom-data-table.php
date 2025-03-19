@@ -51,14 +51,10 @@ function cdt_user_registration_form_shortcode_cb(): string {
 add_action('init', function() {
     new Custom_User_List_Table();
     add_shortcode('cdt_form_user_registration', 'cdt_user_registration_form_shortcode_cb');
-    // error_log(print_r(wp_doing_ajax()));
+    
 });
 
 add_filter('custom_data_table_classes', function($classes) {
     $classes[] = 'cell-border';
     return $classes;
-});
-
-add_filter('custom_data_table_options', function($options) {
-    $options['retrieve'] = true; 
 });

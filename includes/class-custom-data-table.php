@@ -5,43 +5,44 @@ if ( !defined('ABSPATH') ) {
 
 if( !class_exists('Custom_Data_Table') ) {
     class Custom_Data_Table {
+
         private $table_id;
         private $columns;
         private $data;
         private $options;
 
-        public function __construct($table_id, $columns, $data, $options) {
+        public function __construct($table_id, $columns, $data, $options = []) {
+
             $this->table_id = $table_id;
             $this->columns = $columns;
             $this->data = $data;
             $this->options = $options;
 
-            add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+            add_action( 'wp_enqueue_scripts', array($this, 'enqueue_scripts') );
+
+            //pagination handler ajax 
+            add_action('wp_ajax_cdt_page_data', array($this, 'handle_pagination_ajax_cb'));
 
             add_shortcode( $this->table_id, array($this, 'render_shortcode') );
         }
+
         public function enqueue_scripts() {
             
-            // wp_enqueue_script('jquery');
+            wp_enqueue_style('table-css', CUSTOM_DATA_TABLE_URL . 'assets/css/tables.css', array(), filemtime( CUSTOM_DATA_TABLE_DIR . 'assets/css/tables.css') );
+            wp_enqueue_script('table-js', CUSTOM_DATA_TABLE_URL . 'assets/js/tables.js', array('jquery'), filemtime( CUSTOM_DATA_TABLE_DIR . 'assets/js/tables.js') );
 
-            //Add jQuery datatables
-            wp_enqueue_script('jquery-datatable-css', CUSTOM_DATA_TABLE_URL . 'assets/css/datatables.css', array(), '2.0' );
-            wp_enqueue_script('jquery-datatable-js', CUSTOM_DATA_TABLE_URL . 'assets/js/datatables.js', array('jquery'), '2.0' );
+            $securityNonce = wp_create_nonce('cdt_page_data_action');
+            wp_localize_script('table-js', 'my', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'securityNonce' => $securityNonce,
+                'tableId' => $this->table_id
+            ]);
 
-            $options = json_encode(apply_filters('custom_data_table_options', $this->options));
-
-            wp_add_inline_script('jquery-datatable-js', "
-                jQuery(document).ready(function($) {
-                    $('#{$this->table_id}').DataTable($options);
-                });
-            ");
-
-            //apply forms styles
-            wp_enqueue_script('cdt-ur-form-style',CUSTOM_DATA_TABLE_URL . 'assets/css/form.css');
         }
+
         public function render() {
             ?>
-            <table id="<?php echo esc_attr($this->table_id); ?>" class="display dataTable <?php echo implode(' ', apply_filters('custom_data_table_classes', [])); ?>" style="width:100%;">
+            <table id="<?php echo esc_attr($this->table_id); ?>" class="<?php echo implode(' ', apply_filters('custom_data_table_classes', [])); ?>" style="width:100%;">
                 <thead>
                     <tr><?php $this->render_table_columns(); ?></tr>
                 </thead>
@@ -49,16 +50,64 @@ if( !class_exists('Custom_Data_Table') ) {
                     <?php $this->render_table_rows(); ?></tr>
                 </tbody>
             </table>
+            <div class="pagination">
+                <?php
+                    $numRecords = count($this->data);
+                    $numPages = $numRecords / 10;
+                
+                    if ( $numPages > 1 ) {
+                ?>
+                <a href="#" class="prev">&laquo;</a>
+                <?php for($i = 0; $i < $numPages; $i++) {
+                ?>
+                <a href="#" class="page"><?php echo $i + 1; ?> </a>
+                <?php } ?>
+                <a href="#" class="next">&raquo;</a>
+                <?php } ?>
+            </div>
             <?php
         }
+
         private function render_table_columns() {
             foreach ($this->columns as $column) {
                 $column = apply_filters('custom_data_table_column', $column, $this->table_id);
-                echo '<th>' . esc_html($column) . '</th>';
+
+                $ordering = isset($this->options[$column]['ordering']) && $this->options[$column]['ordering'];
+                $filtering = isset($this->options[$column]['filtering']) && $this->options[$column]['filtering'];
+                echo '<th>';
+                echo "<span class='column'>" . esc_html($column) . "</span>";
+            
+                if ($ordering) {
+                    echo ' <span class="order-icons">
+                                <a class="asc">&#9650;</a> 
+                                <a class="desc">&#9660;</a>
+                            </span>';
+                }
+
+                if( $filtering && 'Role' == $column ) {
+                    echo '<div class="filterModal" style="display:none;"><select class="filterModalSelect">' . $this->role_select_dropdown() . '</select></div>';
+                    echo '<span class="filter-icons">
+                        <a class="filter">&#xF3E1;</a>
+                    </span>';
+                }
+                echo '</th>';
             }
         }
+
+        private function role_select_dropdown() {
+            ob_start();
+            $roles = new WP_Roles();
+            $roles_names_array = $roles->get_names();
+            echo '<option disabled selected>-- select role --</option>';
+            foreach( $roles_names_array as $role ) {
+                echo '<option value=' . lcfirst($role) . '>' . $role .'</option>';
+            }
+            return ob_get_clean();
+        }
+
         private function render_table_rows() {
-            foreach ($this->data as $row) {
+            $data = array_slice($this->data, 0, 10);
+            foreach ($data as $row) {
                 $row = apply_filters('custom_data_table_row', $row, $this->table_id);
 
                 echo '<tr>';
@@ -70,6 +119,7 @@ if( !class_exists('Custom_Data_Table') ) {
                 echo '</tr>';
             }
         }
+
         public function render_shortcode() {
             ob_start();
             ?>
@@ -78,6 +128,29 @@ if( !class_exists('Custom_Data_Table') ) {
             </div>
             <?php
             return ob_get_clean();
+        }
+
+        public function handle_pagination_ajax_cb() {
+            //get which page information & context
+            // $this->data = [];
+            
+            $formData = $_POST['data'];
+
+            if ( !isset($formData['nonce']) || !wp_verify_nonce($formData['nonce'], 'cdt_page_data_action') ) {
+                wp_send_json_error(['message' => __('Nonce validation failed!')]);
+                return;
+            }
+            
+
+            $pageNumber = isset($formData['page']) ? $formData['page'] : 1;
+            $this->data = array_slice($this->data, ($pageNumber - 1 ) * 10); //value 10 is hardcoded as of now!
+
+            ob_start();
+            $this->render_table_rows();
+            $data = ob_get_clean();
+
+            wp_send_json_success($data);
+            wp_die();
         }
     }
 }

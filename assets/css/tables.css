@@ -1,0 +1,45 @@
+:root {
+    --cdt-color-primary: rgb(6, 131, 6);
+    --cdt-color-gray: rgb(230, 230, 230);
+    --cdt-color-gray-dark: rgb(150, 150, 150);
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    box-shadow: 1px 2px 4px var(--cdt-color-gray-dark);
+}
+th, td {
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even){
+    background-color: var(--cdt-color-gray);
+}
+
+table a {
+    text-decoration: none !important;
+}
+table a:hover {
+    cursor: pointer;
+}
+
+.order-icons {
+    display: inline-block;
+}
+
+table thead {
+    background-color: var(--cdt-color-primary);
+    color: white;
+}
+
+/* pagination styles */
+.pagination {
+    display: inline-block;
+}
+.pagination a {
+    color: black;
+    padding: 8px 16px;
+    text-decoration: none;
+}

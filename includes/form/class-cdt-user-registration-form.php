@@ -46,9 +46,8 @@ if (!class_exists('CDT_User_Registration_Form')) {
         }
 
         public function handle_form() {
-
-            $formData = $_POST['formData'];            
-            if ( ! isset($formData['user_registration_nonce_field']) || ! wp_verify_nonce($formData['user_registration_nonce_field'], 'user_registration_nonce') ) {
+            $formData = $_POST['formData'];
+            if ( ! isset($formData['user_registration_nonce_field']) || !wp_verify_nonce($formData['user_registration_nonce_field'], 'user_registration_nonce') ) {
                 wp_send_json_error(['message' => __('Nonce invalid, Do not try to do evil things with us.', 'custom-data-table')]);
                 return;
             }

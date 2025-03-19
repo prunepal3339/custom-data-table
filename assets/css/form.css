@@ -43,7 +43,6 @@ form input[type="submit"] {
     cursor: pointer;
     padding: 12px;
     margin-top: 10px;
-    transition: background 0.3s ease-in-out;
 }
 
 form input[type="submit"]:hover {
