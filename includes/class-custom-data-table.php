@@ -25,8 +25,8 @@ if( !class_exists('Custom_Data_Table') ) {
             // wp_enqueue_script('jquery');
 
             //Add jQuery datatables
-            wp_enqueue_script('jquery-datatable-css', 'https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css', array(), '1.0' );
-            wp_enqueue_script('jquery-datatable-js', 'https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js', array('jquery'), '1.0' );
+            wp_enqueue_script('jquery-datatable-css', CUSTOM_DATA_TABLE_URL . 'assets/css/datatables.css', array(), '2.0' );
+            wp_enqueue_script('jquery-datatable-js', CUSTOM_DATA_TABLE_URL . 'assets/js/datatables.js', array('jquery'), '2.0' );
 
             $options = json_encode(apply_filters('custom_data_table_options', $this->options));
 
@@ -35,6 +35,9 @@ if( !class_exists('Custom_Data_Table') ) {
                     $('#{$this->table_id}').DataTable($options);
                 });
             ");
+
+            //apply forms styles
+            wp_enqueue_script('cdt-ur-form-style',CUSTOM_DATA_TABLE_URL . 'assets/css/form.css');
         }
         public function render() {
             ?>

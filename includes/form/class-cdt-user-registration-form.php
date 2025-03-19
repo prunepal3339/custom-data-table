@@ -19,16 +19,12 @@ if (!class_exists('CDT_User_Registration_Form')) {
         private function __construct() {
             add_action( "wp_ajax_" . self::$ajax_action ."", array($this, 'handle_form') );
             add_action( "wp_ajax_nopriv_" .self::$ajax_action."", array($this, 'handle_form') );
-
-            add_action('wp_ajax_test_another_action', function() {
-                wp_send_json_success(['message' => 'Hello!']);
-            });
             add_action( 'wp_enqueue_scripts', array($this, 'enqueue_form_handler_scripts') );
         }
 
         public function enqueue_form_handler_scripts() {
 
-            wp_enqueue_script('form_handler', CUSTOM_DATA_TABLE_URL . 'assets/js/form_handler.js');
+            wp_enqueue_script('form_handler', CUSTOM_DATA_TABLE_URL . 'assets/js/form_handler.js', array('jquery'), filemtime(__FILE__) );
 
             wp_localize_script('form_handler', 'ajaxObject', array(
                 'formId' => self::$form_id,
@@ -58,11 +54,13 @@ if (!class_exists('CDT_User_Registration_Form')) {
             }
             
             $validated = true;
+
             foreach($this->form_fields as $field) {
                 if ( !$validated ) break;
                 $validated = $validated && $field->validate();
             }
             $validated = $validated && $formData['confirm-password'] == $formData['password'];
+
             if ( !$validated ) {
                 wp_send_json_error(['message' => 'Form validation failed!']);
             }
@@ -73,9 +71,9 @@ if (!class_exists('CDT_User_Registration_Form')) {
             $userdata['user_login'] = sanitize_text_field($formData['username']);
             $userdata['user_email'] = sanitize_email($formData['email']);
             $userdata['password'] = sanitize_text_field($formData['password']);
-            $userdata['role'] = sanitize_text_field($formData['roleselectid']);
-
-            wp_insert_user($userdata);
+            $userdata['role'] = sanitize_text_field(lcfirst($formData['roleselectid']));
+            
+            wp_insert_user( $userdata );
 
             wp_send_json_success(['message' => __('User registered successfully!', 'custom-data-table')]);
             wp_die();

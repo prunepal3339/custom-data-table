@@ -25,7 +25,7 @@ require_once CUSTOM_DATA_TABLE_DIR . 'includes/form/fields/class-cdt-select-form
 
 require_once CUSTOM_DATA_TABLE_DIR . 'includes/cdt-functions-core.php';
 
-function cdt_user_registration_form_shortcode_cb() {
+function cdt_user_registration_form_shortcode_cb(): string {
     $urForm = CDT_User_Registration_Form::init();
     
     $role_options = array();
