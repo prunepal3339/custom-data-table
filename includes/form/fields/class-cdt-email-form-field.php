@@ -18,11 +18,20 @@ if (!class_exists('CDT_Email_Form_Field')) {
 
         public function render(): string {
             return '<label for="' . $this->name . '">' . $this->label . '<span style="color:red;">*</span></label>' .
-                '<input type="email" name="' . $this->name . '" id="' . $this->name . '" /><br />';
+                '<input type="email" name="' . $this->name . '" id="' . $this->name . ' required" /><br />';
         }
 
         public function validate(): bool {
-            return \is_email($_POST[$this->name]);
+            global $cdt_form_errors;
+            if (empty($_POST[$this->name])) {
+                $cdt_form_errors[] = __("{$this->name} field is empty", 'custom-data-table');
+                return false;
+            }
+            if( !is_email($_POST[$this->name])) {
+                $cdt_form_errors[] = __("{$this->name} is not valid", 'custom-data-table');
+                return false;
+            }
+            return true;
         }
     }
 }

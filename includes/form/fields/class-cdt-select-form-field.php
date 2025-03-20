@@ -19,12 +19,22 @@ if(!class_exists('CDT_Select_Form_Field')) {
     
         public function render(): string {
             return '<label for="' . $this->name . '">' . $this->label . '<span style="color:red;">*</span></label>' .
-                   '<select name=' . $this->name . 'id = ' . $this->name .  '>  <option disabled selected value> -- select an option -- </option>
+                   '<select name=' . $this->name . ' id = ' . $this->name .  ' required>  <option disabled selected value> -- select an option -- </option>
  ' . $this->options_html() . '</select><br />';
         }
-
+        
         public function validate(): bool {
-            return !empty($_POST[$this->name]) && in_array($_POST[$this->name], array_column($this->options, 'value'));
+            global $cdt_form_errors;
+
+            if ( empty($_POST[$this->name]) ) {
+                $cdt_form_errors[] = __("{$this->name} field is empty", 'custom-data-table');
+                return false;
+            }
+            if ( !in_array($_POST[$this->name], array_column($this->options, "value"))) {
+                $cdt_form_errors[] = __("Invalid option for {$this->name} field", 'custom-data-table');
+                return false;
+            }
+            return true;
         }
         private function options_html(): string {
             $result = '';

@@ -18,11 +18,20 @@ if(!class_exists('CDT_Password_Form_Field')) {
 
         public function render(): string {
             return '<label for="' . $this->name . '">' . $this->label . '<span style="color:red;">*</span></label>' .
-                '<input type="password" name="' . $this->name . '" id="' . $this->name . '" /><br />';
+                '<input type="password" name="' . $this->name . '" id="' . $this->name . ' required" /><br />';
         }
 
         public function validate(): bool {
-            return \cdt_is_valid_password($_POST[$this->name]);
+            global $cdt_form_errors;
+            if( empty($_POST[$this->name]) ) {
+                $cdt_form_errors[] = __("{$this->name} field is empty", 'custom-data-table');
+                return false;
+            }
+            if( !\cdt_is_valid_password($_POST[$this->name])) {
+                $cdt_form_errors[] = 'Password policy not met';
+                return false;
+            }
+            return true;
         }
     }
 }

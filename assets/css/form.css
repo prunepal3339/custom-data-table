@@ -7,6 +7,7 @@ form {
     max-width: 400px;
 }
 
+
 form label {
     display: block;
     font-weight: bold;
@@ -43,6 +44,7 @@ form input[type="submit"] {
     cursor: pointer;
     padding: 12px;
     margin-top: 10px;
+    width: 50%;
 }
 
 form input[type="submit"]:hover {
