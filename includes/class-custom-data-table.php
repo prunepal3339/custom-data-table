@@ -27,6 +27,8 @@ if( !class_exists('Custom_Data_Table') ) {
         }
 
         public function enqueue_scripts() {
+
+            wp_enqueue_style('dashicons'); //
             
             wp_enqueue_style('table-css', CUSTOM_DATA_TABLE_URL . 'assets/css/tables.css', array(), filemtime( CUSTOM_DATA_TABLE_DIR . 'assets/css/tables.css') );
             wp_enqueue_script('table-js', CUSTOM_DATA_TABLE_URL . 'assets/js/tables.js', array('jquery'), filemtime( CUSTOM_DATA_TABLE_DIR . 'assets/js/tables.js') );
@@ -87,7 +89,7 @@ if( !class_exists('Custom_Data_Table') ) {
                 if( $filtering && 'Role' == $column ) {
                     echo '<div class="filterModal" style="display:none;"><select class="filterModalSelect">' . $this->role_select_dropdown() . '</select></div>';
                     echo '<span class="filter-icons">
-                        <a class="filter">&#xF3E1;</a>
+                        <a class="filter"><span class="dashicons dashicons-filter"></span></a>
                     </span>';
                 }
                 echo '</th>';
