@@ -122,7 +122,16 @@ if( !class_exists('Custom_Data_Table') ) {
             }
         }
 
-        public function render_shortcode() {
+        public function render_shortcode( $atts ) {
+            
+            shortcode_atts( array(
+                'admin_only_message' => 'Only admins are allowed to see this content',
+            ), $atts, $this->table_id );
+            
+            if ( is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles ) ) {
+                return '<p>' . esc_html($atts['admin_only_message']) . '</p>';
+            }
+            
             ob_start();
             ?>
             <div class='custom-data-table' id='<?php echo "custom-data-table__{$this->table_id}" ?>' >
